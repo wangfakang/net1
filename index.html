@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Net1 by wangfakang</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Net1</h1>
+        <p class="header">tcp 三次握手time_wait</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/wangfakang/net1/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/wangfakang/net1/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/wangfakang/net1">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/wangfakang">wangfakang</a></p>
+
+
+      </header>
+      <section>
+        <p><code>三次握手四次挥手的过程：</code>   </p>
+
+<h1>
+<a id="1tcp协议的简单讲解--" class="anchor" href="#1tcp%E5%8D%8F%E8%AE%AE%E7%9A%84%E7%AE%80%E5%8D%95%E8%AE%B2%E8%A7%A3--" aria-hidden="true"><span class="octicon octicon-link"></span></a>1.tcp协议的简单讲解：  </h1>
+
+<p>　　　首先tcp是位于传输层的协议，tcp协议的特点：面向连接，字节流，可靠传输等特点．</p>
+
+<h1>
+<a id="2tcp方式建立的三次握手过程---" class="anchor" href="#2tcp%E6%96%B9%E5%BC%8F%E5%BB%BA%E7%AB%8B%E7%9A%84%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E8%BF%87%E7%A8%8B---" aria-hidden="true"><span class="octicon octicon-link"></span></a>2.tcp方式建立的三次握手过程：   </h1>
+
+<p>　　　首先client想server端发送syn（同步报文段）此时client的状态变为synsend，当server端<br>
+　　　收到的时候其server状态变为synrecved.此时server进行向client发送syn 和　ack报文，当<br>
+　　　client收到的时候server端的syn ack的时候则client状态变化为estableished,然后给server<br>
+　　　发送ack当server端收到ack的时候则完成了三次握手，server状态变化为estableished.   </p>
+
+<h1>
+<a id="3tcp断开连接时的四次挥手----" class="anchor" href="#3tcp%E6%96%AD%E5%BC%80%E8%BF%9E%E6%8E%A5%E6%97%B6%E7%9A%84%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B----" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.tcp断开连接时的四次挥手：    </h1>
+
+<p>　　　为何建立连接的时候就只需要三次握手，而断开连接的时候就要四次挥手恩？原因很简单，由<br>
+　　　于此种建立的连接是双向的，要彼此都断开才是真的断开了，否则会处于一种半连接状态．<br>
+　　　其过程如下：           </p>
+
+<p>　　　当client向server发送fin（结束报文）的时候，此时client的状态就变成fin_wait_1,当server收到<br>
+　　　的时候就会向client发送ack此时client收到的时候client变为fin_wait_2而且server处于closed_wait，<br>
+　　　此时状态就是一种半连接状态，方式二：此时如果server发送fin +ack的话则client直接变为time_wait,<br>
+　　　server变为last_ack状态．最后当client发送ack,server收到的话就变成了close_wait.<br>
+　　　注意：<br>
+　　　上面提到的client变为time_wait状态，注意处于time_wait默认状态下，该连接是不可用的．之所以存在
+　　　一个time_wait状态，原因就是有可能server端没有收到c发的ack所以此时s会继续发送一个fin让其c给回复
+　　　ack.所以此时的c的连接是不可以与其他进行建立连接．<br>
+　　　默认：<br>
+　　　time_wait的时间是２倍的MSL(MSL:是报文段的最大生存时间)，之所time_wait设置为2MSL,这样可以进行
+　　　迟来的报文进行丢弃．      </p>
+
+<h1>
+<a id="4什么情况下我们会收到一个rst复位报文段-" class="anchor" href="#4%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E6%88%91%E4%BB%AC%E4%BC%9A%E6%94%B6%E5%88%B0%E4%B8%80%E4%B8%AArst%E5%A4%8D%E4%BD%8D%E6%8A%A5%E6%96%87%E6%AE%B5-" aria-hidden="true"><span class="octicon octicon-link"></span></a>4.什么情况下我们会收到一个rst(复位报文段)： </h1>
+
+<p>　　第一种：当我们访问一个不存在的一个端口的时候．<br>
+　　第二种：当向处于time_wait的状态的端口发送连接．<br>
+　　第三种：当向半连接状态的对端写数据的时候（注意对端是指主动断开的一端）．<br>
+　　第四种：异常终止对方连接，可以向对端发送一个rst进行断开．   </p>
+
+<h1>
+<a id="5tcp报文的结构--" class="anchor" href="#5tcp%E6%8A%A5%E6%96%87%E7%9A%84%E7%BB%93%E6%9E%84--" aria-hidden="true"><span class="octicon octicon-link"></span></a>5.tcp报文的结构：  </h1>
+
+<hr>
+
+<p>　　16位源端口　　　　　　　　　　　16位目标端口<br>
+　</p>
+
+<pre><code>                 32位序列号       
+</code></pre>
+
+<p>　　　　　　　　　
+                     32位确认号　<br>
+4位头部长度　６　U A P R S F   　 16位窗口大小      </p>
+
+<p>16位校验和　　　　　　　　　　　　16位紧急指针　      </p>
+
+<pre><code>                选项最多40字节    
+</code></pre>
+
+<h2>
+<a id="----" class="anchor" href="#----" aria-hidden="true"><span class="octicon octicon-link"></span></a>   　　　　　　 </h2>
+
+<p>相关6个标志位解释：       </p>
+
+<p>URG:紧急数据指针<br>
+ACK:确认<br>
+PSH:立即接受缓冲区数据<br>
+RST:复位<br>
+SYN:同步<br>
+FIN:结束报文   </p>
+
+<p>　</p>
+
+<h1>
+<a id="欢迎一起交流学习-" class="anchor" href="#%E6%AC%A2%E8%BF%8E%E4%B8%80%E8%B5%B7%E4%BA%A4%E6%B5%81%E5%AD%A6%E4%B9%A0-" aria-hidden="true"><span class="octicon octicon-link"></span></a>欢迎一起交流学习 </h1>
+
+<p>在使用中有任何问题，欢迎反馈给我，可以用以下联系方式跟我交流</p>
+
+<ul>
+<li>邮件(1031379296#qq.com, 把#换成@)</li>
+<li>QQ: 1031379296</li>
+<li>weibo: <a href="http://weibo.com/u/2786211992/home">@王发康</a>
+</li>
+</ul>
+
+<h1>
+<a id="thx" class="anchor" href="#thx" aria-hidden="true"><span class="octicon octicon-link"></span></a>Thx</h1>
+
+<ul>
+<li>chunshengsterATgmail.com</li>
+</ul>
+
+<h1>
+<a id="author" class="anchor" href="#author" aria-hidden="true"><span class="octicon octicon-link"></span></a>Author</h1>
+
+<ul>
+<li>Linux\nginx\golang\c\c++爱好者</li>
+<li>欢迎一起交流  一起学习# </li>
+<li>Others say good and Others good</li>
+</ul>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		          <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("tcp time_wait 三次握手　四次挥手");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
